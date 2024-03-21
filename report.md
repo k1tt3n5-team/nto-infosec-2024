@@ -417,3 +417,25 @@ GitLab, 15.2.2.
 
 Jynx Rootkit/2.0. В директории /root остался скрипт, который подгружал Base64-закодированную полезную нагрузку от [https://github.com/chokepoint/Jynx2](https://github.com/chokepoint/Jynx2). Скрин декоднутой полезной нагрузки:
 ![https://i.imgur.com/D6xSY4G.png](https://i.imgur.com/D6xSY4G.png)
+
+
+
+
+# Vulnerability Patching
+
+Данный фрагмент кода на Python из auth_api.py уязвим к SQL-инъекции:
+
+python sql_query = "UPDATE user SET pw = '" + str(new_password) + "' WHERE login = '" + str(username) + "';" update_cursor.execute(sql_query)
+
+Патч с использованием безопасной подстановки:
+
+python update_cursor.execute("UPDATE user SET pw = ? WHERE login = ?;", (new_password, username))
+
+
+
+В Python auth_api.py недостаточно защищенно проверяется корректность JWT:
+
+python jwt_options = { 'verify_signature': True, 'verify_exp': True, 'verify_nbf': False, 'verify_iat': False, 'verify_aud': False } try: data = jwt.decode(token, current_app.config.get('SECRET_KEY'), algorithms=['HS256'], options=jwt_options)
+
+Для патча необходимо заменить значения у nbf и iat на True
+
