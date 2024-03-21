@@ -423,19 +423,26 @@ Jynx Rootkit/2.0. В директории /root остался скрипт, к�
 
 # Vulnerability Patching
 
-Данный фрагмент кода на Python из auth_api.py уязвим к SQL-инъекции:
+Данный фрагмент кода на Python из `auth_api.py` уязвим к SQL-инъекции:
 
-python sql_query = "UPDATE user SET pw = '" + str(new_password) + "' WHERE login = '" + str(username) + "';" update_cursor.execute(sql_query)
+```python
+sql_query = "UPDATE user SET pw = '" + str(new_password) + "' WHERE login = '" + str(username) + "';" update_cursor.execute(sql_query)
+```
 
 Патч с использованием безопасной подстановки:
 
-python update_cursor.execute("UPDATE user SET pw = ? WHERE login = ?;", (new_password, username))
+```python
+update_cursor.execute("UPDATE user SET pw = ? WHERE login = ?;", (new_password, username))
+```
 
 
+В Python `auth_api.py` недостаточно защищенно проверяется корректность JWT:
 
-В Python auth_api.py недостаточно защищенно проверяется корректность JWT:
+```python
+jwt_options = { 'verify_signature': True, 'verify_exp': True, 'verify_nbf': False, 'verify_iat': False, 'verify_aud': False }
+try:
+    data = jwt.decode(token, current_app.config.get('SECRET_KEY'), algorithms=['HS256'], options=jwt_options)
+```
 
-python jwt_options = { 'verify_signature': True, 'verify_exp': True, 'verify_nbf': False, 'verify_iat': False, 'verify_aud': False } try: data = jwt.decode(token, current_app.config.get('SECRET_KEY'), algorithms=['HS256'], options=jwt_options)
-
-Для патча необходимо заменить значения у nbf и iat на True
+Для патча необходимо заменить значения у nbf и iat на `True`
 
